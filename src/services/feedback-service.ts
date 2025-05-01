@@ -11,7 +11,10 @@ export const FeedbackService = {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error fetching feedback:", error);
+        throw error;
+      }
       
       // Map Supabase data structure to our Feedback type
       return data.map(item => ({
@@ -30,6 +33,8 @@ export const FeedbackService = {
   // Create new feedback
   create: async (feedback: FeedbackFormValues): Promise<Feedback> => {
     try {
+      console.log("Attempting to create feedback:", feedback);
+      
       const { data, error } = await supabase
         .from('feedback')
         .insert([
@@ -39,17 +44,27 @@ export const FeedbackService = {
             message: feedback.message
           }
         ])
-        .select()
-        .single();
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error creating feedback:", error);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.error("No data returned after insert");
+        throw new Error("Failed to create feedback: No data returned");
+      }
+      
+      const createdFeedback = data[0];
+      console.log("Feedback created successfully:", createdFeedback);
       
       return {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        message: data.message,
-        createdAt: data.created_at
+        id: createdFeedback.id,
+        name: createdFeedback.name,
+        email: createdFeedback.email,
+        message: createdFeedback.message,
+        createdAt: createdFeedback.created_at
       };
     } catch (error) {
       console.error("Error creating feedback:", error);
@@ -65,7 +80,10 @@ export const FeedbackService = {
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error deleting feedback:", error);
+        throw error;
+      }
     } catch (error) {
       console.error("Error deleting feedback:", error);
       throw error;

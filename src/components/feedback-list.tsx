@@ -6,7 +6,8 @@ import { FeedbackService } from "@/services/feedback-service";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface FeedbackListProps {
   searchTerm: string;
@@ -22,9 +23,11 @@ export function FeedbackList({ searchTerm, refreshTrigger }: FeedbackListProps) 
     setLoading(true);
     setError(null);
     try {
+      console.log("Fetching feedback data...");
       const data = await FeedbackService.getAll();
+      console.log("Feedback data received:", data);
       setFeedbackList(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching feedback:", error);
       setError("Failed to load feedback. Please try again.");
       toast.error("Failed to load feedback");
@@ -34,6 +37,7 @@ export function FeedbackList({ searchTerm, refreshTrigger }: FeedbackListProps) 
   };
 
   useEffect(() => {
+    console.log("FeedbackList component mounted or refreshTrigger changed");
     fetchFeedback();
   }, [refreshTrigger]);
 
@@ -70,13 +74,18 @@ export function FeedbackList({ searchTerm, refreshTrigger }: FeedbackListProps) 
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-xl font-semibold mb-2">Error loading feedback</h3>
-        <p className="text-muted-foreground mb-4">{error}</p>
-        <Button onClick={fetchFeedback} variant="outline" className="flex items-center gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Try Again
-        </Button>
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <div className="flex justify-center">
+          <Button onClick={fetchFeedback} variant="outline" className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
       </div>
     );
   }

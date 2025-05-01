@@ -11,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { FeedbackFormValues } from "@/types/feedback";
 import { FeedbackService } from "@/services/feedback-service";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,6 +26,7 @@ interface FeedbackFormProps {
 
 export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
   
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(formSchema),
@@ -38,12 +40,17 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
   const onSubmit = async (values: FeedbackFormValues) => {
     try {
       setIsSubmitting(true);
+      setSubmissionError(null);
+      
+      console.log("Submitting feedback:", values);
       await FeedbackService.create(values);
+      
       toast.success("Feedback submitted successfully!");
       form.reset();
       onSubmitSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting feedback:", error);
+      setSubmissionError(error.message || "Failed to submit feedback. Please try again.");
       toast.error("Failed to submit feedback. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -59,6 +66,15 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {submissionError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {submissionError}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
