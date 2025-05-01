@@ -29,7 +29,7 @@ export function FeedbackList({ searchTerm, refreshTrigger }: FeedbackListProps) 
       setFeedbackList(data);
     } catch (error: any) {
       console.error("Error fetching feedback:", error);
-      setError("Failed to load feedback. Please try again.");
+      setError(error.message || "Failed to load feedback. Please try again.");
       toast.error("Failed to load feedback");
     } finally {
       setLoading(false);
@@ -46,9 +46,9 @@ export function FeedbackList({ searchTerm, refreshTrigger }: FeedbackListProps) 
       await FeedbackService.delete(id);
       setFeedbackList(prevList => prevList.filter(item => item.id !== id));
       toast.success("Feedback deleted successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting feedback:", error);
-      toast.error("Failed to delete feedback");
+      toast.error(error.message || "Failed to delete feedback");
     }
   };
 

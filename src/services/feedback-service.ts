@@ -6,6 +6,7 @@ export const FeedbackService = {
   // Get all feedback
   getAll: async (): Promise<Feedback[]> => {
     try {
+      console.log("Fetching all feedback from Supabase...");
       const { data, error } = await supabase
         .from('feedback')
         .select('*')
@@ -13,8 +14,15 @@ export const FeedbackService = {
       
       if (error) {
         console.error("Supabase error fetching feedback:", error);
-        throw error;
+        throw new Error(`Failed to fetch feedback: ${error.message}`);
       }
+      
+      if (!data) {
+        console.log("No feedback data returned from Supabase");
+        return [];
+      }
+      
+      console.log(`Successfully fetched ${data.length} feedback items`);
       
       // Map Supabase data structure to our Feedback type
       return data.map(item => ({
@@ -35,6 +43,12 @@ export const FeedbackService = {
     try {
       console.log("Attempting to create feedback:", feedback);
       
+      // Validate input data
+      if (!feedback.name || !feedback.email || !feedback.message) {
+        console.error("Missing required fields in feedback submission");
+        throw new Error("Name, email, and message are required");
+      }
+      
       const { data, error } = await supabase
         .from('feedback')
         .insert([
@@ -48,7 +62,7 @@ export const FeedbackService = {
       
       if (error) {
         console.error("Supabase error creating feedback:", error);
-        throw error;
+        throw new Error(`Failed to create feedback: ${error.message}`);
       }
       
       if (!data || data.length === 0) {
@@ -75,6 +89,7 @@ export const FeedbackService = {
   // Delete feedback
   delete: async (id: string): Promise<void> => {
     try {
+      console.log(`Attempting to delete feedback with ID: ${id}`);
       const { error } = await supabase
         .from('feedback')
         .delete()
@@ -82,8 +97,10 @@ export const FeedbackService = {
       
       if (error) {
         console.error("Supabase error deleting feedback:", error);
-        throw error;
+        throw new Error(`Failed to delete feedback: ${error.message}`);
       }
+      
+      console.log(`Successfully deleted feedback with ID: ${id}`);
     } catch (error) {
       console.error("Error deleting feedback:", error);
       throw error;

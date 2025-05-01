@@ -42,7 +42,7 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
       setIsSubmitting(true);
       setSubmissionError(null);
       
-      console.log("Submitting feedback:", values);
+      console.log("Submitting feedback with values:", values);
       await FeedbackService.create(values);
       
       toast.success("Feedback submitted successfully!");
