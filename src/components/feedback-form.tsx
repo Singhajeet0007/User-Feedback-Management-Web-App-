@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FeedbackFormValues } from "@/types/feedback";
 import { FeedbackService } from "@/services/feedback-service";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -42,8 +43,8 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
       form.reset();
       onSubmitSuccess();
     } catch (error) {
-      toast.error("Failed to submit feedback. Please try again.");
       console.error("Error submitting feedback:", error);
+      toast.error("Failed to submit feedback. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -104,7 +105,14 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
               )}
             />
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Submitting..." : "Submit Feedback"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Feedback"
+              )}
             </Button>
           </form>
         </Form>
