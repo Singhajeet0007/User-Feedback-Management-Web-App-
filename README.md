@@ -1,8 +1,4 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/d08d63e0-48d4-40db-bf21-f90a0c196234
+# Welcome to User Feedback Management Web App project
 
 ## How can I edit this code?
 
