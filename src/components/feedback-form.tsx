@@ -45,7 +45,6 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
       console.log("Submitting feedback with values:", values);
       await FeedbackService.create(values);
       
-      toast.success("Feedback submitted successfully!");
       form.reset();
       onSubmitSuccess();
     } catch (error: any) {
@@ -58,14 +57,14 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <Card className="w-full shadow-md">
+      <CardHeader className="bg-primary/5 rounded-t-lg">
         <CardTitle>Send Feedback</CardTitle>
         <CardDescription>
           We value your input. Please share your thoughts with us.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {submissionError && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -112,7 +111,7 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
                   <FormControl>
                     <Textarea
                       placeholder="Your feedback message..."
-                      className="min-h-[120px]"
+                      className="min-h-[150px] resize-none"
                       {...field}
                     />
                   </FormControl>
@@ -120,7 +119,11 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <Button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className="w-full transition-all hover:scale-[1.02]"
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

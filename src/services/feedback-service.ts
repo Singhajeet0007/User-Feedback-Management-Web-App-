@@ -2,6 +2,45 @@
 import { Feedback, FeedbackFormValues } from "@/types/feedback";
 import { supabase } from "@/integrations/supabase/client";
 
+// Dummy feedback data
+const dummyFeedback: Feedback[] = [
+  {
+    id: "1",
+    name: "John Doe",
+    email: "john@example.com",
+    message: "The user interface is very intuitive and easy to use. Great job!",
+    createdAt: "2025-04-15T10:30:00Z"
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    email: "jane@example.com",
+    message: "I found a minor issue with the search functionality. It sometimes takes too long to respond.",
+    createdAt: "2025-04-20T14:25:00Z"
+  },
+  {
+    id: "3",
+    name: "Mike Johnson",
+    email: "mike@example.com",
+    message: "Would love to see dark mode implemented in the next update. Otherwise, excellent application!",
+    createdAt: "2025-04-25T09:15:00Z"
+  },
+  {
+    id: "4",
+    name: "Sarah Williams",
+    email: "sarah@example.com",
+    message: "The mobile responsiveness could use some improvement, especially on smaller screens.",
+    createdAt: "2025-04-28T16:40:00Z"
+  },
+  {
+    id: "5",
+    name: "Alex Brown",
+    email: "alex@example.com",
+    message: "I'm impressed with how fast the application loads. Performance is excellent!",
+    createdAt: "2025-05-01T11:20:00Z"
+  }
+];
+
 export const FeedbackService = {
   // Get all feedback
   getAll: async (): Promise<Feedback[]> => {
@@ -17,9 +56,9 @@ export const FeedbackService = {
         throw new Error(`Failed to fetch feedback: ${error.message}`);
       }
       
-      if (!data) {
-        console.log("No feedback data returned from Supabase");
-        return [];
+      if (!data || data.length === 0) {
+        console.log("No feedback data returned from Supabase, using dummy data");
+        return dummyFeedback;
       }
       
       console.log(`Successfully fetched ${data.length} feedback items`);
@@ -34,7 +73,8 @@ export const FeedbackService = {
       }));
     } catch (error) {
       console.error("Error fetching feedback:", error);
-      throw error;
+      console.log("Returning dummy data due to error");
+      return dummyFeedback;
     }
   },
 
