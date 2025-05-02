@@ -1,8 +1,10 @@
 
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { Search } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface HeaderProps {
   showSearch?: boolean;
@@ -11,6 +13,8 @@ interface HeaderProps {
 }
 
 export function Header({ showSearch, searchTerm, setSearchTerm }: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-10 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex h-16 items-center justify-between">
@@ -30,6 +34,8 @@ export function Header({ showSearch, searchTerm, setSearchTerm }: HeaderProps) {
               />
             </div>
           )}
+          
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-4">
             <Link to="/" className="text-sm font-medium hover:text-primary transition-colors">
               Feedback List
@@ -38,6 +44,36 @@ export function Header({ showSearch, searchTerm, setSearchTerm }: HeaderProps) {
               Submit Feedback
             </Link>
           </nav>
+          
+          {/* Mobile Navigation */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="p-2">
+                  <Menu className="h-5 w-5" />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[250px] sm:w-[300px]">
+                <nav className="flex flex-col space-y-4 mt-8">
+                  <Link 
+                    to="/" 
+                    className="text-base font-medium hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Feedback List
+                  </Link>
+                  <Link 
+                    to="/submit" 
+                    className="text-base font-medium hover:text-primary transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Submit Feedback
+                  </Link>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+          
           <ThemeSwitcher />
         </div>
       </div>

@@ -1,6 +1,7 @@
 
 import { Feedback, FeedbackFormValues } from "@/types/feedback";
 import { supabase } from "@/integrations/supabase/client";
+import { format, formatInTimeZone } from "date-fns-tz";
 
 // Dummy feedback data
 const dummyFeedback: Feedback[] = [
@@ -41,6 +42,17 @@ const dummyFeedback: Feedback[] = [
   }
 ];
 
+// Utility function to convert UTC timestamps to Indian time
+const convertToIndianTime = (utcDateString: string): string => {
+  try {
+    // Format to Indian time (IST)
+    return formatInTimeZone(new Date(utcDateString), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ssXXX");
+  } catch (error) {
+    console.error("Error converting timestamp to Indian time:", error);
+    return utcDateString;
+  }
+};
+
 export const FeedbackService = {
   // Get all feedback
   getAll: async (): Promise<Feedback[]> => {
@@ -63,13 +75,13 @@ export const FeedbackService = {
       
       console.log(`Successfully fetched ${data.length} feedback items`);
       
-      // Map Supabase data structure to our Feedback type
+      // Map Supabase data structure to our Feedback type and convert timestamps to IST
       return data.map(item => ({
         id: item.id,
         name: item.name,
         email: item.email,
         message: item.message,
-        createdAt: item.created_at
+        createdAt: convertToIndianTime(item.created_at)
       }));
     } catch (error) {
       console.error("Error fetching feedback:", error);
@@ -118,7 +130,7 @@ export const FeedbackService = {
         name: createdFeedback.name,
         email: createdFeedback.email,
         message: createdFeedback.message,
-        createdAt: createdFeedback.created_at
+        createdAt: convertToIndianTime(createdFeedback.created_at)
       };
     } catch (error) {
       console.error("Error creating feedback:", error);

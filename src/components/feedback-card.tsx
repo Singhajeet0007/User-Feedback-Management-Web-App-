@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Feedback } from "@/types/feedback";
 import { Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +27,7 @@ export function FeedbackCard({ feedback, onDelete }: FeedbackCardProps) {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "MMM d, yyyy 'at' h:mm a");
+      return format(parseISO(dateString), "MMM d, yyyy 'at' h:mm a");
     } catch (error) {
       return "Invalid date";
     }

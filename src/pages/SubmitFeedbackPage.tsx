@@ -1,8 +1,7 @@
 
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/header";
 import { FeedbackForm } from "@/components/feedback-form";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const SubmitFeedbackPage = () => {
