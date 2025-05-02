@@ -1,7 +1,8 @@
 
 import { Feedback, FeedbackFormValues } from "@/types/feedback";
 import { supabase } from "@/integrations/supabase/client";
-import { format, formatInTimeZone } from "date-fns-tz";
+import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 // Dummy feedback data
 const dummyFeedback: Feedback[] = [
@@ -42,7 +43,7 @@ const dummyFeedback: Feedback[] = [
   }
 ];
 
-// Utility function to convert UTC timestamps to Indian time
+// Utility function to convert UTC timestamps to Indian time (Asia/Kolkata)
 const convertToIndianTime = (utcDateString: string): string => {
   try {
     // Format to Indian time (IST)

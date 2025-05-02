@@ -3,7 +3,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Feedback } from "@/types/feedback";
 import { Trash2 } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { parseISO } from "date-fns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,8 +28,14 @@ export function FeedbackCard({ feedback, onDelete }: FeedbackCardProps) {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(parseISO(dateString), "MMM d, yyyy 'at' h:mm a");
+      // Format the date in Indian Standard Time (IST)
+      return formatInTimeZone(
+        parseISO(dateString), 
+        'Asia/Kolkata', 
+        "MMM d, yyyy 'at' h:mm a 'IST'"
+      );
     } catch (error) {
+      console.error("Error formatting date:", error);
       return "Invalid date";
     }
   };
