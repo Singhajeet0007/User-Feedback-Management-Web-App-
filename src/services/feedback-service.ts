@@ -47,7 +47,11 @@ const dummyFeedback: Feedback[] = [
 const convertToIndianTime = (utcDateString: string): string => {
   try {
     // Format to Indian time (IST)
-    return formatInTimeZone(new Date(utcDateString), 'Asia/Kolkata', "yyyy-MM-dd'T'HH:mm:ssXXX");
+    return formatInTimeZone(
+      new Date(utcDateString), 
+      'Asia/Kolkata', 
+      "yyyy-MM-dd'T'HH:mm:ssXXX"
+    );
   } catch (error) {
     console.error("Error converting timestamp to Indian time:", error);
     return utcDateString;
@@ -82,7 +86,7 @@ export const FeedbackService = {
         name: item.name,
         email: item.email,
         message: item.message,
-        createdAt: convertToIndianTime(item.created_at)
+        createdAt: item.created_at // We'll keep the original ISO format and let the display component handle formatting
       }));
     } catch (error) {
       console.error("Error fetching feedback:", error);
@@ -131,7 +135,7 @@ export const FeedbackService = {
         name: createdFeedback.name,
         email: createdFeedback.email,
         message: createdFeedback.message,
-        createdAt: convertToIndianTime(createdFeedback.created_at)
+        createdAt: createdFeedback.created_at // Keep original ISO format
       };
     } catch (error) {
       console.error("Error creating feedback:", error);
