@@ -1,4 +1,3 @@
-
 import { Feedback, FeedbackFormValues } from "@/types/feedback";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -58,10 +57,53 @@ const convertToIndianTime = (utcDateString: string): string => {
   }
 };
 
+// Function to check if online
+const isOnline = (): boolean => {
+  return navigator.onLine;
+};
+
+// Function to sync pending feedback from local storage
+const syncPendingFeedback = async (): Promise<void> => {
+  if (!isOnline()) return;
+  
+  try {
+    const pendingFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+    if (pendingFeedback.length === 0) return;
+    
+    // Process each pending feedback
+    const promises = pendingFeedback.map(async (feedback: any) => {
+      const { name, email, message } = feedback;
+      try {
+        await FeedbackService.create({ name, email, message });
+        return feedback.id; // Return ID of successfully processed feedback
+      } catch (error) {
+        console.error("Error syncing pending feedback:", error);
+        return null; // Return null for failed sync attempts
+      }
+    });
+    
+    const results = await Promise.allSettled(promises);
+    const successfulIds = results
+      .filter(result => result.status === 'fulfilled' && result.value)
+      .map(result => (result as PromiseFulfilledResult<string>).value);
+    
+    // Remove successfully synced feedback
+    if (successfulIds.length > 0) {
+      const remaining = pendingFeedback.filter((f: any) => !successfulIds.includes(f.id));
+      localStorage.setItem('pendingFeedback', JSON.stringify(remaining));
+    }
+  } catch (error) {
+    console.error("Error syncing pending feedback:", error);
+  }
+};
+
 export const FeedbackService = {
   // Get all feedback
   getAll: async (): Promise<Feedback[]> => {
     try {
+      // Try to sync any pending feedback first
+      await syncPendingFeedback();
+      
       console.log("Fetching all feedback from Supabase...");
       const { data, error } = await supabase
         .from('feedback')
@@ -91,6 +133,16 @@ export const FeedbackService = {
     } catch (error) {
       console.error("Error fetching feedback:", error);
       console.log("Returning dummy data due to error");
+      
+      // If offline or error, check for locally stored feedback
+      if (!isOnline()) {
+        const localFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+        if (localFeedback.length > 0) {
+          // Combine with dummy data
+          return [...localFeedback, ...dummyFeedback];
+        }
+      }
+      
       return dummyFeedback;
     }
   },
@@ -104,6 +156,11 @@ export const FeedbackService = {
       if (!feedback.name || !feedback.email || !feedback.message) {
         console.error("Missing required fields in feedback submission");
         throw new Error("Name, email, and message are required");
+      }
+      
+      // Check if online
+      if (!isOnline()) {
+        throw new Error("You are currently offline. Please check your connection and try again.");
       }
       
       const { data, error } = await supabase
@@ -147,6 +204,20 @@ export const FeedbackService = {
   delete: async (id: string): Promise<void> => {
     try {
       console.log(`Attempting to delete feedback with ID: ${id}`);
+      
+      // Check if this is a locally stored feedback (pending sync)
+      const pendingFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+      const isPendingFeedback = pendingFeedback.some((f: any) => f.id === id);
+      
+      if (isPendingFeedback) {
+        // Remove from local storage
+        const updatedPending = pendingFeedback.filter((f: any) => f.id !== id);
+        localStorage.setItem('pendingFeedback', JSON.stringify(updatedPending));
+        console.log(`Successfully deleted pending feedback with ID: ${id}`);
+        return;
+      }
+      
+      // Otherwise delete from Supabase
       const { error } = await supabase
         .from('feedback')
         .delete()

@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { FeedbackFormValues } from "@/types/feedback";
 import { FeedbackService } from "@/services/feedback-service";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, WifiOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { v4 as uuidv4 } from "uuid";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -27,6 +28,21 @@ interface FeedbackFormProps {
 export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
+  // Monitor online/offline status
+  useState(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  });
   
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(formSchema),
@@ -43,14 +59,42 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
       setSubmissionError(null);
       
       console.log("Submitting feedback with values:", values);
+      
+      // If offline, store locally and show success message
+      if (isOffline) {
+        const tempId = uuidv4();
+        const feedbackWithId = {
+          ...values,
+          id: tempId,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Store in local storage for later submission
+        const storedFeedback = JSON.parse(localStorage.getItem('pendingFeedback') || '[]');
+        localStorage.setItem('pendingFeedback', JSON.stringify([...storedFeedback, feedbackWithId]));
+        
+        toast.info("You're currently offline. Your feedback has been saved and will be submitted when you're back online.");
+        form.reset();
+        onSubmitSuccess();
+        return;
+      }
+      
+      // Online submission
       await FeedbackService.create(values);
       
       form.reset();
       onSubmitSuccess();
     } catch (error: any) {
       console.error("Error submitting feedback:", error);
-      setSubmissionError(error.message || "Failed to submit feedback. Please try again.");
-      toast.error("Failed to submit feedback. Please try again.");
+      
+      // Network error handling
+      if (error.message?.includes('Failed to fetch') || error.name === 'TypeError') {
+        setSubmissionError("Network error: Unable to connect to our servers. Please check your internet connection and try again.");
+        toast.error("Connection issue. Please check your network.");
+      } else {
+        setSubmissionError(error.message || "Failed to submit feedback. Please try again.");
+        toast.error("Failed to submit feedback. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -65,6 +109,15 @@ export function FeedbackForm({ onSubmitSuccess }: FeedbackFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
+        {isOffline && (
+          <Alert variant="warning" className="mb-6 bg-amber-50 border-amber-300">
+            <WifiOff className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              You are currently offline. Your feedback will be saved locally and submitted when you're back online.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         {submissionError && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
